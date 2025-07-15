@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Galeri Musik</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+    }
+
+    body {
+      background-color: #ffccde;
+      background-image:
+        linear-gradient(to right, #ffffff 1px, transparent 1px),
+        linear-gradient(to bottom, #ffffff 1px, transparent 1px);
+      background-size: 40px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      text-align: center;
+      min-height: 100vh;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    body.loaded {
+      opacity: 1;
+    }
+
+    body.fade-out {
+      opacity: 0;
+    }
+
+    .container {
+      border: 3px solid #d81b60;
+      border-radius: 16px;
+      padding: 20px;
+      width: 90%;
+      max-width: 400px;
+      background-color: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(5px);
+      margin-top: 30px;
+    }
+
+    h1 {
+      color: #fff;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 5px #000;
+    }
+
+    .cover {
+      width: 100%;
+      height: 200px;
+      background-size: cover;
+      background-position: center;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      margin-bottom: 20px;
+      transition: background-image 0.4s ease-in-out;
+    }
+
+    .now-playing {
+      font-size: 16px;
+      color: #fff;
+      margin-bottom: 15px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 15px;
+    }
+
+    .controls button {
+      background-color: #d81b60;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .controls button:hover {
+      background-color: #c2185b;
+    }
+
+    .playlist {
+      background-color: rgba(0,0,0,0.5);
+      border-radius: 10px;
+      padding: 10px;
+      color: #fff;
+      max-height: 130px;
+      overflow-y: auto;
+    }
+
+    .playlist div {
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    .playlist div:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    audio {
+      display: none;
+    }
+
+    .bottom-buttons {
+      display: flex;
+      justify-content: space-between;
+      width: 90%;
+      max-width: 400px;
+      margin-top: 20px;
+    }
+
+    .bottom-buttons button {
+      background-color: #d81b60;
+      color: white;
+      border: none;
+      padding: 12px;
+      width: 48%;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .bottom-buttons button:hover {
+      background-color: #c2185b;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🎵 Pemutar Musik</h1>
+    <div class="cover" id="coverImage" src="Coverlagu/aboutyoucover.webp"></div>
+    <div class="now-playing" id="nowPlaying">About You - The 1975</div>
+
+    <div class="controls">
+      <button onclick="prevSong()">⏮</button>
+      <button onclick="togglePlay()">▶/⏸</button>
+      <button onclick="nextSong()">⏭</button>
+    </div>
+
+    <div class="playlist" id="playlist"></div>
+
+    <audio id="audioPlayer" src="Lagu/AboutYou.mp3"></audio>
+  </div>
+
+  <div class="bottom-buttons">
+    <button onclick="navigateWithFade('galeri.html')">⬅ Kembali</button>
+    <button onclick="navigateWithFade('game.html')">Selanjutnya</button>
+  </div>
+
+  <script>
+    const playlist = [
+      {
+        title: "About You - The 1975",
+        file: "AboutYou.mp3",
+        cover: "aboutyoucover.webp"
+      },
+      {
+        title: "Tapi Diterima - Nadin Amizah",
+        file: "TapiDiterima.mp3",
+        cover: "Diterima.jpg"
+      },
+      {
+        title: "Donne Maula - Bercinta Lewat Kata",
+        file: "Kata.mp3",
+        cover: "Kata.png"
+      },
+      {
+        title: "Semua Aku Dirayakan - Nadin Amizah",
+        file: "Dirayakan.mp3",
+        cover: "Dirayakan.jpg"
+      },
+      {
+        title: "Nadin Amizah - Bertaut",
+        file: "Bertaut.mp3",
+        cover: "Bertaut.jpg"
+      }
+    ];
+
+    const audio = document.getElementById("audioPlayer");
+    const nowPlaying = document.getElementById("nowPlaying");
+    const playlistEl = document.getElementById("playlist");
+    const coverImage = document.getElementById("coverImage");
+    let currentTrack = 0;
+
+    function loadSong(index) {
+      currentTrack = index;
+      audio.src = playlist[index].file;
+      nowPlaying.textContent = playlist[index].title;
+      coverImage.style.backgroundImage = `url('${playlist[index].cover}')`;
+      audio.play();
+    }
+
+    function togglePlay() {
+      if (audio.paused) {
+        audio.play();
+      } else {
+        audio.pause();
+      }
+    }
+
+    function nextSong() {
+      currentTrack = (currentTrack + 1) % playlist.length;
+      loadSong(currentTrack);
+    }
+
+    function prevSong() {
+      currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
+      loadSong(currentTrack);
+    }
+
+    playlist.forEach((song, index) => {
+      const div = document.createElement("div");
+      div.textContent = song.title;
+      div.onclick = () => loadSong(index);
+      playlistEl.appendChild(div);
+    });
+
+    function navigateWithFade(url) {
+      document.body.classList.remove("loaded");
+      document.body.classList.add("fade-out");
+      setTimeout(() => {
+        window.location.href = url;
+      }, 800);
+    }
+
+    window.onload = () => {
+      document.body.classList.add("loaded");
+    };
+  </script>
+
+</body>
+</html>

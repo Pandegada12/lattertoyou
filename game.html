@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tetris Halus Pink</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+    }
+
+    body {
+      background-color: #ffccde;
+      background-image:
+        linear-gradient(to right, #ffffff 1px, transparent 1px),
+        linear-gradient(to bottom, #ffffff 1px, transparent 1px);
+      background-size: 40px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      overflow: hidden;
+      animation: fadeIn 1s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        transform: scale(1);
+      }
+      to {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+    }
+
+    .fade-out {
+      animation: fadeOut 0.5s forwards;
+    }
+
+    .tetris-container {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 3px solid #ff69b4;
+      backdrop-filter: blur(8px);
+      border-radius: 16px;
+      padding: 20px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 0 20px rgba(255, 105, 180, 0.3);
+    }
+
+    .header {
+      text-align: center;
+      font-size: 28px;
+      color: #ff69b4;
+      margin-bottom: 15px;
+      text-shadow: 1px 1px 3px #000;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #fff;
+    }
+
+    .game-board {
+      width: 200px;
+      height: 400px;
+      background-color: #111;
+      border: 2px solid #ff69b4;
+      margin: 0 auto 15px;
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      grid-template-rows: repeat(20, 1fr);
+      gap: 1px;
+      border-radius: 8px;
+    }
+
+    .cell {
+      background-color: #000;
+    }
+
+    .filled {
+      background-color: #ff69b4;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    .controls button {
+      flex: 1 1 30%;
+      padding: 10px;
+      font-weight: bold;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      background-color: #ff69b4;
+      color: black;
+      transition: 0.3s;
+    }
+
+    .controls button:hover {
+      background-color: #ff85c1;
+    }
+
+    .controls .start {
+      background: linear-gradient(to right, #90ee90, green);
+      color: black;
+    }
+
+    .controls .reset {
+      background: orange;
+      flex: 1 1 48%;
+    }
+
+    .controls .back {
+      background: red;
+      color: white;
+      flex: 1 1 48%;
+    }
+
+    .popup, .popup2 {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.85);
+      border: 3px solid #ff1744;
+      padding: 30px;
+      color: white;
+      border-radius: 20px;
+      text-align: center;
+      z-index: 999;
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .popup h2 {
+      margin-bottom: 10px;
+      color: #ff5252;
+    }
+
+    .popup button,
+    .popup2 button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #ff69b4;
+      color: black;
+      border: none;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .popup2 p {
+      font-size: 27px;
+      color: #fff;
+    }
+
+    .popup2 span {
+      display: block;
+      font-size: 18px;
+      margin-top: 10px;
+      color: #ffd6e6;
+    }
+
+    .popup2 button:hover,
+    .popup button:hover {
+      background-color: #ff85c1;
+    }
+  </style>
+</head>
+<body id="mainBody">
+
+  <!-- Popup Pertama -->
+  <div class="popup" id="gameOverPopup">
+    <h2>Game Over!</h2>
+    <p>Skor: <span id="finalScore">0</span></p>
+    <button onclick="showSecondPopup()">Tutup</button>
+  </div>
+
+  <!-- Popup Kedua -->
+  <div class="popup2" id="lovePopup">
+    <p>gk apa sayang kamu akan selalu menang dihatiku ko</p>
+    <span>i love you</span>
+    <button onclick="resetGame()">Main Lagi</button>
+  </div>
+
+  <div class="tetris-container">
+    <div class="header">💖 Tetris</div>
+    <div class="stats">
+      <div>Skor: <span id="score">0</span></div>
+      <div>Level: <span id="level">1</span></div>
+      <div>Lines: <span id="lines">0</span></div>
+    </div>
+    <div class="game-board" id="board"></div>
+    <div class="controls">
+      <button onclick="move(-1)">←</button>
+      <button onclick="rotate()">🔄</button>
+      <button onclick="move(1)">→</button>
+      <button class="start" onclick="startGame()">▶ Mulai</button>
+      <button class="reset" onclick="resetGame()">🔁 Reset</button>
+      <button class="back" onclick="exitPage()">⬅ Kembali</button>
+    </div>
+  </div>
+
+  <script>
+    const board = document.getElementById("board");
+    const scoreEl = document.getElementById("score");
+    const levelEl = document.getElementById("level");
+    const linesEl = document.getElementById("lines");
+    const finalScore = document.getElementById("finalScore");
+    const popup = document.getElementById("gameOverPopup");
+    const lovePopup = document.getElementById("lovePopup");
+    const body = document.getElementById("mainBody");
+
+    const ROWS = 20, COLS = 10;
+    const SPEEDS = [800, 700, 600, 500, 400, 300, 200, 100, 80, 50];
+
+    const SHAPES = {
+      I: [[1,1,1,1]],
+      O: [[1,1],[1,1]],
+      T: [[0,1,0],[1,1,1]],
+      S: [[0,1,1],[1,1,0]],
+      Z: [[1,1,0],[0,1,1]],
+      J: [[1,0,0],[1,1,1]],
+      L: [[0,0,1],[1,1,1]],
+    };
+
+    let grid = [];
+    let current = null;
+    let pos = {x: 0, y: 0};
+    let dropCounter = 0, dropInterval = 800;
+    let lastTime = 0;
+    let score = 0, lines = 0, level = 1;
+    let playing = false;
+
+    function createGrid() {
+      grid = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+    }
+
+    function drawGrid() {
+      board.innerHTML = '';
+      for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+          const div = document.createElement("div");
+          div.className = "cell";
+          if (grid[y][x]) div.classList.add("filled");
+          board.appendChild(div);
+        }
+      }
+
+      if (current) {
+        current.shape.forEach((row, dy) => {
+          row.forEach((val, dx) => {
+            if (val) {
+              const cell = board.children[(pos.y + dy) * COLS + (pos.x + dx)];
+              if (cell) cell.classList.add("filled");
+            }
+          });
+        });
+      }
+    }
+
+    function spawn() {
+      const types = Object.keys(SHAPES);
+      const type = types[Math.floor(Math.random() * types.length)];
+      const shape = SHAPES[type];
+      current = {shape, type};
+      pos = {x: Math.floor((COLS - shape[0].length)/2), y: 0};
+      if (collide()) {
+        playing = false;
+        finalScore.textContent = score;
+        popup.style.display = 'block';
+      }
+    }
+
+    function move(dir) {
+      if (!playing) return;
+      pos.x += dir;
+      if (collide()) pos.x -= dir;
+      drawGrid();
+    }
+
+    function rotate() {
+      if (!playing) return;
+      const rotated = current.shape[0].map((_, i) => current.shape.map(r => r[i]).reverse());
+      const old = current.shape;
+      current.shape = rotated;
+      if (collide()) current.shape = old;
+      drawGrid();
+    }
+
+    function collide() {
+      return current.shape.some((row, dy) =>
+        row.some((val, dx) => {
+          if (!val) return false;
+          const y = pos.y + dy;
+          const x = pos.x + dx;
+          return y >= ROWS || x < 0 || x >= COLS || (grid[y] && grid[y][x]);
+        })
+      );
+    }
+
+    function drop() {
+      pos.y++;
+      if (collide()) {
+        pos.y--;
+        merge();
+        clearLines();
+        spawn();
+      }
+      drawGrid();
+      dropCounter = 0;
+    }
+
+    function merge() {
+      current.shape.forEach((row, dy) =>
+        row.forEach((val, dx) => {
+          if (val) grid[pos.y + dy][pos.x + dx] = 1;
+        })
+      );
+    }
+
+    function clearLines() {
+      let cleared = 0;
+      grid = grid.filter(row => {
+        if (row.every(cell => cell)) {
+          cleared++;
+          return false;
+        }
+        return true;
+      });
+      while (grid.length < ROWS) grid.unshift(Array(COLS).fill(0));
+      if (cleared > 0) {
+        lines += cleared;
+        score += cleared * 100;
+        level = Math.floor(lines / 5) + 1;
+        dropInterval = SPEEDS[Math.min(level - 1, SPEEDS.length - 1)];
+        updateStats();
+      }
+    }
+
+    function updateStats() {
+      scoreEl.textContent = score;
+      linesEl.textContent = lines;
+      levelEl.textContent = level;
+    }
+
+    function resetGame() {
+      popup.style.display = 'none';
+      lovePopup.style.display = 'none';
+      createGrid();
+      score = lines = level = 0;
+      dropInterval = SPEEDS[0];
+      updateStats();
+      playing = false;
+      drawGrid();
+    }
+
+    function startGame() {
+      resetGame();
+      playing = true;
+      spawn();
+      requestAnimationFrame(update);
+    }
+
+    function update(time = 0) {
+      const delta = time - lastTime;
+      lastTime = time;
+      dropCounter += delta;
+      if (dropCounter > dropInterval) drop();
+      if (playing) requestAnimationFrame(update);
+    }
+
+    function showSecondPopup() {
+      popup.style.display = 'none';
+      lovePopup.style.display = 'block';
+    }
+
+    function exitPage() {
+      document.body.classList.add("fade-out");
+      setTimeout(() => {
+        window.location.href = "halaman-utama.html";
+      }, 500);
+    }
+
+    document.addEventListener('keydown', e => {
+      if (!playing) return;
+      if (e.key === 'ArrowLeft') move(-1);
+      else if (e.key === 'ArrowRight') move(1);
+      else if (e.key === 'ArrowDown') drop();
+      else if (e.key === 'ArrowUp') rotate();
+    });
+
+    resetGame();
+  </script>
+</body>
+</html>

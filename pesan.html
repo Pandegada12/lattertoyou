@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pesan Untukmu</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #ffccde;
+      background-image:
+        linear-gradient(to right, rgb(255, 255, 255) 1px, transparent 1px),
+        linear-gradient(to bottom, rgb(255, 255, 255) 1px, transparent 1px);
+      background-size: 40px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    body.loaded {
+      opacity: 1;
+    }
+
+    .chat-wrapper {
+      width: 90vmin;
+      max-width: 420px;
+      background: #fff;
+      border: 3px solid #d81b60;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .title {
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+      color: #d81b60;
+      margin-bottom: 12px;
+    }
+
+    .text-area {
+      flex-grow: 1;
+      overflow-y: auto;
+      font-size: 17px;
+      line-height: 1.6;
+      color: #333;
+      margin-bottom: 12px;
+      max-height: 250px;
+    }
+
+    #typedText::after {
+      content: '|';
+      animation: blink 1s infinite;
+      color: #d81b60;
+    }
+
+    @keyframes blink {
+      0%, 50%, 100% { opacity: 1; }
+      25%, 75% { opacity: 0; }
+    }
+
+    #skipBtn {
+      align-self: flex-end;
+      padding: 6px 14px;
+      background-color: #d81b60;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    #skipBtn:hover {
+      background-color: #b3154f;
+    }
+
+    .nav-buttons-wrapper {
+      width: 90vmin;
+      max-width: 420px;
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .nav-buttons-wrapper button {
+      padding: 10px 0;
+      background-color: #fff;
+      color: #d81b60;
+      border: 2px solid #d81b60;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+      width: 100%;
+      transition: background-color 0.3s ease;
+    }
+
+    .nav-buttons-wrapper button:hover {
+      background-color: #ffe4ef;
+    }
+
+    @media screen and (max-width: 480px) {
+      .chat-wrapper {
+        padding: 16px;
+      }
+
+      .text-area {
+        font-size: 15px;
+        max-height: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="chat-wrapper">
+  <div class="title">PESAN UNTUKMU SAYANG</div>
+
+  <div class="text-area" id="typedText"></div>
+
+  <button id="skipBtn" onclick="skipTyping()">Skip</button>
+</div>
+
+<div class="nav-buttons-wrapper">
+  <button onclick="navigateWithFade('halaman-utama.html')">KEMBALI</button>
+  <button onclick="navigateWithFade('galeri.html')">LANJUTKAN</button>
+</div>
+
+<script>
+  const fullText = `
+Haiii wanita yang maniss dan lucuu 😄
+
+Aku cuma mau bilang sesuatu yang mungkin udah sering kamu dengar, tapi aku akan tetap mengatakannya...
+
+Kamu udah melewati hari ini dengan baik, kamu luar biasa karna udh bangun pagi, prp ini itu buat hari ini dan itu pasti sangat capek.
+
+Aku bangga kamu sayang karna udah melewati hari ini dengan semangat.
+
+Walau kamu tadi ngeluh capek, pengen pulang, lelah, dan semua keluhan yang kamu bilang padaku.
+
+Tapi kamu tetap betahan disana dan kamu mneyelesaikan hari ini dengan sempurna... i so happy for you
+
+Maaf juga masih belum bisa nemenin kamu kesana ya sayang cuma bisa ngasi semangat lewat chat.
+
+Tapi untuk kedepannya aku akan mambantu mu dalam apapun, baik menemani mu jalan - jalan atau mendegarkan semua keluh kesahmu diharis ebelumnya, hari ini dan hari kedepannya
+
+Selamat istirahat ya sayang kamu udah melewati hari yang melelahkan. Dan jajan yang aku beliin kemarin dan surat ini adalah reward untukmu karna udah melewati hari ini dengan baik
+
+I'm very proud of youu....
+
+Dan kedepannya akan lebih banyak reward yang akan aku berikan kepada mu. DITUNGGU!!!!!
+
+
+-Dari manusia yang selalu memikirkanmu setiap saat
+
+  `;
+
+  let index = 0;
+  const speed = 40;
+  const typedText = document.getElementById("typedText");
+  let isSkipping = false;
+  let typingTimeout;
+
+  function typeWriter() {
+    if (isSkipping) return;
+
+    if (index < fullText.length) {
+      typedText.innerHTML += fullText.charAt(index);
+      index++;
+      typedText.scrollTop = typedText.scrollHeight;
+      typingTimeout = setTimeout(typeWriter, speed);
+    }
+  }
+
+  function skipTyping() {
+    isSkipping = true;
+    clearTimeout(typingTimeout);
+    typedText.innerHTML = fullText;
+    typedText.scrollTop = typedText.scrollHeight;
+  }
+
+  function navigateWithFade(url) {
+    document.body.classList.remove('loaded');
+    setTimeout(() => {
+      window.location.href = url;
+    }, 800); // sesuai durasi transisi fade-out
+  }
+
+  // Animasi masuk dan delay ketik 5 detik
+  window.onload = () => {
+    document.body.classList.add('loaded');
+    setTimeout(typeWriter, 5000); // delay 5 detik sebelum mulai ketik
+  };
+</script>
+
+</body>
+</html>

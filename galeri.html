@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Galeri</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+    }
+
+    body {
+      background-color: #ffccde;
+      background-image:
+        linear-gradient(to right, #ffffff 1px, transparent 1px),
+        linear-gradient(to bottom, #ffffff 1px, transparent 1px);
+      background-size: 40px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      text-align: center;
+      min-height: 100vh;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    body.loaded {
+      opacity: 1;
+    }
+
+    body.fade-out {
+      opacity: 0;
+    }
+
+    .container {
+      border: 3px solid #d81b60;
+      border-radius: 16px;
+      padding: 20px;
+      width: 90%;
+      max-width: 400px;
+      background-color: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(5px);
+      margin-top: 30px;
+    }
+
+    h1 {
+      color: #fff;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 5px #000;
+    }
+
+    .photo-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 133%;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .photo {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      clip-path: inset(0 0 100% 0);
+      transition: clip-path 0.1s linear, opacity 0.2s ease;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      filter: blur(5px);
+    }
+
+    .photo.loaded {
+      filter: none;
+    }
+
+    .overlay-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: bold;
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 10px 16px;
+      border-radius: 12px;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .overlay-text.active {
+      opacity: 1;
+    }
+
+    .btn-show, .btn-nav {
+      background-color: #d81b60;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+
+    .btn-show:hover, .btn-nav:hover {
+      background-color: #c2185b;
+    }
+
+    .loading-text {
+      color: #fff;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 20px;
+      background-color: #eee;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background-color: #d81b60;
+      transition: width 0.1s linear;
+    }
+
+    .nav-buttons {
+      display: none;
+      justify-content: space-between;
+    }
+
+    .bottom-buttons {
+      display: flex;
+      justify-content: space-between;
+      width: 90%;
+      max-width: 400px;
+      margin-top: 20px;
+    }
+
+    .bottom-buttons button {
+      background-color: #d81b60;
+      color: white;
+      border: none;
+      padding: 12px;
+      width: 48%;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .bottom-buttons button:hover {
+      background-color: #c2185b;
+    }
+
+    .popup-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0,0,0,0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .popup {
+      background-color: white;
+      padding: 30px;
+      border-radius: 16px;
+      max-width: 300px;
+      text-align: center;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .popup h2 {
+      color: #d81b60;
+      margin-bottom: 15px;
+    }
+
+    .popup button {
+      background-color: #d81b60;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .popup button:hover {
+      background-color: #c2185b;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🖼️ Galeri</h1>
+
+    <div class="photo-wrapper">
+      <img src="" alt="Foto Galeri" id="photo" class="photo" />
+      <div class="overlay-text" id="overlay-text">Ditunggu ya sayang...</div>
+    </div>
+
+    <div id="loading-section" style="display:none;">
+      <div class="loading-text" id="loading-text">Loading... 0%</div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <button class="btn-show" id="showBtn" onclick="startLoading()">Tampilkan Foto</button>
+
+    <div class="nav-buttons" id="nav-buttons">
+      <button class="btn-nav" onclick="changeSlide(-1)">Sebelumnya</button>
+      <button class="btn-nav" onclick="changeSlide(1)">Berikutnya</button>
+    </div>
+  </div>
+
+  <div class="bottom-buttons">
+    <button onclick="navigateWithFade('halaman-utama.html')">⬅ KEMBALI</button>
+    <button onclick="navigateWithFade('musik.html')">LANJUTKAN ➡</button>
+  </div>
+
+  <div class="popup-overlay" id="popup">
+    <div class="popup">
+      <h2>🎉 Sudah Semua!</h2>
+      <p>Terima kasih sudah melihat semua fotonya yaa sayang maaf kalo pakek helm hehe</p>
+      <button onclick="closePopup()">Tutup</button>
+    </div>
+  </div>
+
+  <script>
+    const images = [
+      "1.jpg",
+      "2.jpg",
+      "3.jpg",
+      "4.jpg",
+      "5.jpg",
+      "6.jpg",
+      "7.jpg",
+      "8.jpg",
+      "9.jpg",
+      "10.jpg"
+    ];
+    let currentIndex = 0;
+    let popupShown = false;
+
+    function startLoading() {
+      const photo = document.getElementById("photo");
+      const loadingSection = document.getElementById("loading-section");
+      const fill = document.getElementById("progress-fill");
+      const text = document.getElementById("loading-text");
+      const navButtons = document.getElementById("nav-buttons");
+      const popup = document.getElementById("popup");
+      const overlayText = document.getElementById("overlay-text");
+
+      overlayText.classList.add("active");
+
+      loadingSection.style.display = "block";
+      navButtons.style.display = "none";
+      fill.style.width = "0%";
+      text.textContent = "Loading... 0%";
+
+      if (currentIndex >= images.length) {
+        document.getElementById("showBtn").style.display = "none";
+        loadingSection.style.display = "none";
+        if (!popupShown) {
+          popup.style.display = "flex";
+          popupShown = true;
+        }
+        return;
+      }
+
+      photo.src = images[currentIndex];
+      photo.classList.remove("loaded");
+      photo.style.opacity = "0";
+      photo.style.clipPath = "inset(0 0 100% 0)";
+      photo.style.display = "block";
+
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress++;
+        fill.style.width = progress + "%";
+        text.textContent = "Loading... " + progress + "%";
+        photo.style.clipPath = `inset(0 0 ${100 - progress}% 0)`;
+        if (progress > 5) photo.style.opacity = "1";
+        if (progress >= 100) {
+          clearInterval(interval);
+          navButtons.style.display = "flex";
+          photo.classList.add("loaded");
+          overlayText.classList.remove("active");
+        }
+      }, 70); // 7 detik total
+    }
+
+    function changeSlide(direction) {
+      currentIndex += direction;
+      if (currentIndex < 0) currentIndex = 0;
+      startLoading();
+    }
+
+    function closePopup() {
+      document.getElementById("popup").style.display = "none";
+    }
+
+    function navigateWithFade(url) {
+      document.body.classList.remove("loaded");
+      document.body.classList.add("fade-out");
+      setTimeout(() => {
+        window.location.href = url;
+      }, 800);
+    }
+
+    window.onload = () => {
+      document.body.classList.add("loaded");
+    };
+  </script>
+
+</body>
+</html>
